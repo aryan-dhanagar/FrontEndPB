@@ -19,12 +19,14 @@ import ShippingPolicyPage from './pages/ShippingPolicyPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import ContactPage from './pages/ContactPage';
 import ScrollToTop from './components/ScrollToTop';
+import KitchenClosedBanner from './components/KitchenClosedBanner';
 
 function App() {
     return (
         <div className="min-h-screen flex flex-col">
             <ScrollToTop />
             <Header />
+            <KitchenClosedBanner />
             <main className="flex-1">
                 <Routes>
                     <Route path="/" element={<Home />} />

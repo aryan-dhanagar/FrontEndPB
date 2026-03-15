@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { getProductBySlug, getProducts } from '../services/api';
+import { getProductBySlug, getProducts, getProductReviews, submitReview } from '../services/api';
 
 // SVG icon components
 const FireIcon = () => (
@@ -70,12 +70,28 @@ const SearchIcon = () => (
 
 const ProductPage = () => {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
     const { addToCart, isInCart, getQuantityInCart, justAdded } = useCart();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [selectedSize, setSelectedSize] = useState(null);
+
+    // Reviews state
+    const [reviews, setReviews] = useState([]);
+    const [avgRating, setAvgRating] = useState(0);
+    const [reviewCount, setReviewCount] = useState(0);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewHover, setReviewHover] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewSuccess, setReviewSuccess] = useState(false);
+    const [reviewError, setReviewError] = useState('');
+    const reviewOrderId = searchParams.get('orderId');
+    const isReviewMode = searchParams.get('review') === 'true' && reviewOrderId;
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -106,6 +122,24 @@ const ProductPage = () => {
                 }
             })
             .catch(() => { });
+
+        // Fetch reviews for this product
+        getProductReviews(id)
+            .then(data => {
+                setReviews(data.reviews || []);
+                setAvgRating(data.avgRating || 0);
+                setReviewCount(data.count || 0);
+            })
+            .catch(() => {});
+
+        // Auto-show review form if coming from email
+        if (isReviewMode) {
+            setShowReviewForm(true);
+            setTimeout(() => {
+                const el = document.getElementById('reviews-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 500);
+        }
 
         window.scrollTo(0, 0);
         setActiveImageIndex(0);
@@ -148,7 +182,12 @@ const ProductPage = () => {
     const wasJustAdded = justAdded === pid;
 
     const handleAddToCart = () => {
-        addToCart(product, quantity);
+        const effectivePrice = selectedSize ? selectedSize.price : product.price;
+        addToCart({
+            ...product,
+            price: effectivePrice,
+            selectedSize: selectedSize ? selectedSize.label : null,
+        }, quantity);
         setQuantity(1);
     };
 
@@ -186,14 +225,6 @@ const ProductPage = () => {
                                         alt={`${product.name} - Image ${activeImageIndex + 1}`}
                                         className="w-full aspect-square object-cover transition-opacity duration-300"
                                     />
-                                    {product.isVegan && (
-                                        <span className="absolute top-4 left-4 bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
-                                            </svg>
-                                            Vegan
-                                        </span>
-                                    )}
                                     {hasMultiple && (
                                         <>
                                             <button
@@ -295,9 +326,32 @@ const ProductPage = () => {
                     )}
 
                     {/* Price */}
-                    <p className="text-3xl font-black text-[#1a1a1a] mb-6">
-                        ₹{product.price.toFixed(2)}
+                    <p className="text-3xl font-black text-[#1a1a1a] mb-2">
+                        ₹{(selectedSize ? selectedSize.price : product.price).toFixed(2)}
                     </p>
+
+                    {/* Size Selector */}
+                    {product.sizes && product.sizes.length > 0 && (
+                        <div className="mb-6">
+                            <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-3">Choose Size</p>
+                            <div className="flex gap-2">
+                                {product.sizes.map((s, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setSelectedSize(s)}
+                                        className={`flex-1 py-3 px-4 rounded-xl border-2 text-center transition-all ${
+                                            selectedSize?.label === s.label
+                                                ? 'border-[#1a1a1a] bg-[#1a1a1a] text-white'
+                                                : 'border-gray-200 hover:border-gray-400 text-[#1a1a1a]'
+                                        }`}
+                                    >
+                                        <p className="font-bold text-sm">{s.label}</p>
+                                        <p className={`text-xs mt-0.5 ${selectedSize?.label === s.label ? 'text-gray-300' : 'text-gray-400'}`}>₹{s.price.toFixed(2)}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Description */}
                     <div className="text-sm text-gray-600 leading-relaxed mb-6 whitespace-pre-line">
@@ -306,30 +360,12 @@ const ProductPage = () => {
 
                     {/* Nutrition Info Cards */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                        {product.proteinPer100g && (
+                        {product.protein && (
                             <div className="flex items-center gap-2.5 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
                                 <FireIcon />
                                 <div>
-                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">Protein / 100g</p>
-                                    <p className="font-bold text-sm text-[#1a1a1a] mt-0.5">{product.proteinPer100g}g</p>
-                                </div>
-                            </div>
-                        )}
-                        {product.fiberPer100g && (
-                            <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                                <FireIcon />
-                                <div>
-                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">Fiber / 100g</p>
-                                    <p className="font-bold text-sm text-[#1a1a1a] mt-0.5">{product.fiberPer100g}g</p>
-                                </div>
-                            </div>
-                        )}
-                        {product.isVegan && (
-                            <div className="flex items-center gap-2.5 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
-                                <LeafIcon />
-                                <div>
-                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">Diet</p>
-                                    <p className="font-bold text-sm text-green-700 mt-0.5">Vegan</p>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 leading-none">Protein</p>
+                                    <p className="font-bold text-sm text-[#1a1a1a] mt-0.5">{product.protein}</p>
                                 </div>
                             </div>
                         )}
@@ -393,7 +429,7 @@ const ProductPage = () => {
                             {wasJustAdded ? (
                                 <><CheckIcon /> Added to Cart</>
                             ) : (
-                                <><CartIcon /> Add to Cart &mdash; ₹{(product.price * quantity).toFixed(2)}</>
+                                <><CartIcon /> Add to Cart — ₹{((selectedSize ? selectedSize.price : product.price) * quantity).toFixed(2)}</>
                             )}
                         </motion.button>
                     </div>
@@ -458,6 +494,209 @@ const ProductPage = () => {
                     </div>
                 </section>
             )}
+            {/* ═══════════════ REVIEWS SECTION ═══════════════ */}
+            <section id="reviews-section" className="mt-16 sm:mt-24 pb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h2 className="font-display text-2xl sm:text-3xl text-[#1a1a1a]">
+                            Customer <em className="italic">Reviews</em>
+                        </h2>
+                        {reviewCount > 0 && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <StarIcon key={s} filled={s <= Math.round(avgRating)} />
+                                    ))}
+                                </div>
+                                <span className="font-bold text-[#1a1a1a]">{avgRating}</span>
+                                <span className="text-sm text-gray-400">({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Review Form */}
+                {showReviewForm && !reviewSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-[#faf8f5] rounded-2xl p-6 sm:p-8 mb-10"
+                    >
+                        <h3 className="font-bold text-lg text-[#1a1a1a] mb-1">Rate this product</h3>
+                        <p className="text-sm text-gray-500 mb-5">Share your experience with {product?.name}</p>
+
+                        {/* Star selector */}
+                        <div className="flex items-center gap-1 mb-5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setReviewRating(s)}
+                                    onMouseEnter={() => setReviewHover(s)}
+                                    onMouseLeave={() => setReviewHover(0)}
+                                    className="p-1 transition-transform hover:scale-125"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-8 h-8 transition-colors ${s <= (reviewHover || reviewRating) ? 'text-amber-400' : 'text-gray-200'}`}
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                </button>
+                            ))}
+                            {reviewRating > 0 && (
+                                <span className="ml-2 text-sm font-medium text-gray-600">
+                                    {['', 'Not great', 'Could be better', 'Good', 'Really good', 'Amazing!'][reviewRating]}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Comment */}
+                        <textarea
+                            value={reviewComment}
+                            onChange={e => setReviewComment(e.target.value)}
+                            rows={3}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all resize-none mb-4"
+                            placeholder="Tell us what you thought about this product... (optional)"
+                        />
+
+                        {reviewError && <p className="text-sm text-red-600 mb-3">{reviewError}</p>}
+
+                        {/* Email input for non-logged-in users */}
+                        {!isReviewMode && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Your email (must match your order)</label>
+                                <input
+                                    type="email"
+                                    id="review-email"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent"
+                                    placeholder="you@example.com"
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={async () => {
+                                    if (reviewRating === 0) {
+                                        setReviewError('Please select a star rating.');
+                                        return;
+                                    }
+                                    setReviewSubmitting(true);
+                                    setReviewError('');
+                                    try {
+                                        // Get email from order params or input
+                                        let email = '';
+                                        if (isReviewMode) {
+                                            // Fetch order to get email
+                                            const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/reviews/order/${reviewOrderId}`);
+                                            const orderData = await res.json();
+                                            email = orderData.email;
+                                        } else {
+                                            email = document.getElementById('review-email')?.value || '';
+                                        }
+                                        if (!email) {
+                                            setReviewError('Please enter your email address.');
+                                            setReviewSubmitting(false);
+                                            return;
+                                        }
+
+                                        // We need an orderId. For review mode we have it. For manual, we need to find a delivered order
+                                        const orderId = reviewOrderId || '';
+                                        if (!orderId) {
+                                            setReviewError('Reviews can only be submitted from the email link sent after delivery.');
+                                            setReviewSubmitting(false);
+                                            return;
+                                        }
+
+                                        await submitReview(orderId, email, [{
+                                            productId: product._id,
+                                            rating: reviewRating,
+                                            comment: reviewComment,
+                                        }]);
+                                        setReviewSuccess(true);
+                                        // Refresh reviews
+                                        const updated = await getProductReviews(id);
+                                        setReviews(updated.reviews || []);
+                                        setAvgRating(updated.avgRating || 0);
+                                        setReviewCount(updated.count || 0);
+                                    } catch (err) {
+                                        setReviewError(err.response?.data?.message || 'Failed to submit review. Please try again.');
+                                    } finally {
+                                        setReviewSubmitting(false);
+                                    }
+                                }}
+                                disabled={reviewSubmitting}
+                                className="bg-[#1a1a1a] text-white text-sm font-bold uppercase tracking-wider px-6 py-3 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50"
+                            >
+                                {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                            </button>
+                            <button
+                                onClick={() => { setShowReviewForm(false); setReviewError(''); }}
+                                className="text-sm font-medium text-gray-500 hover:text-gray-700 px-4 py-3"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Review submitted success */}
+                {reviewSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center mb-10"
+                    >
+                        <p className="text-2xl mb-2">🎉</p>
+                        <p className="font-bold text-green-700">Thank you for your review!</p>
+                        <p className="text-sm text-green-600 mt-1">Your feedback helps us make every bowl better.</p>
+                    </motion.div>
+                )}
+
+                {/* Reviews list */}
+                {reviewCount === 0 && !showReviewForm ? (
+                    <div className="text-center py-12 bg-[#faf8f5] rounded-2xl">
+                        <p className="text-4xl mb-3">⭐</p>
+                        <p className="font-semibold text-[#1a1a1a]">No reviews yet</p>
+                        <p className="text-sm text-gray-500 mt-1">Be the first to review this product!</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {reviews.map((r, i) => (
+                            <motion.div
+                                key={r._id || i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="bg-white border border-gray-100 rounded-2xl p-5"
+                            >
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-[#1a1a1a] flex items-center justify-center text-white text-sm font-bold">
+                                            {(r.customerName || r.email || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm text-[#1a1a1a]">{r.customerName || 'Customer'}</p>
+                                            <div className="flex gap-0.5 mt-0.5">
+                                                {[1, 2, 3, 4, 5].map(s => (
+                                                    <StarIcon key={s} filled={s <= r.rating} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-400">
+                                        {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                {r.comment && <p className="text-sm text-gray-600 leading-relaxed mt-2">{r.comment}</p>}
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+            </section>
         </div>
     );
 };

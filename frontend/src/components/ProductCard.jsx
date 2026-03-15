@@ -65,7 +65,10 @@ const ProductCard = ({ product }) => {
                         <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{product.description}</p>
                     )}
                     <p className="text-navy-900 font-bold text-[15px] mt-1.5">
-                        ₹{product.price.toFixed(2)}
+                        {product.sizes && product.sizes.length > 0
+                            ? <>from ₹{Math.min(...product.sizes.map(s => s.price)).toFixed(2)}</>
+                            : <>₹{product.price.toFixed(2)}</>
+                        }
                     </p>
                 </div>
                 {product.rating && (
@@ -94,14 +97,9 @@ const ProductCard = ({ product }) => {
             {/* Ingredients as tags (from API) */}
             {!product.tags && product.ingredients && product.ingredients.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                    {product.proteinPer100g && (
+                    {product.protein && (
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 border border-gray-200 px-2 py-0.5 rounded-md">
-                            {product.proteinPer100g}g PROTEIN/100g
-                        </span>
-                    )}
-                    {product.isVegan && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-green-500 border border-green-200 px-2 py-0.5 rounded-md">
-                            VEGAN
+                            {product.protein} PROTEIN
                         </span>
                     )}
                 </div>

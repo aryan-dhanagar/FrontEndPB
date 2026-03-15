@@ -28,8 +28,8 @@ const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
     );
 };
 
-/* ─── salad gallery images ─── */
-const galleryImages = [
+/* ─── salad gallery images (fallback if no products) ─── */
+const galleryFallback = [
     {
         src: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
         alt: 'Vibrant veggie bowl',
@@ -75,7 +75,7 @@ const AboutPage = () => {
             try {
                 const data = await getProducts();
                 if (data && data.length > 0) {
-                    setProducts(data.slice(0, 4).map(p => ({ ...p, id: p._id || p.slug })));
+                    setProducts(data.map(p => ({ ...p, id: p._id || p.slug })));
                 }
             } catch (err) {
                 console.error('Failed to fetch products:', err);
@@ -139,19 +139,19 @@ const AboutPage = () => {
 
                         <FadeIn delay={0.15}>
                             <p>
-                                Protein Bites was founded by <strong className="text-[#1a1a1a]">Videe</strong> — the chaotic but determined duo <strong className="text-[#1a1a1a]">Vidya + Deepali</strong> — who were tired of the same old sad &quot;healthy food&quot; situation. You know the one: bland salads, depressing diet plates, and food that makes you question all your life choices.
+                                Protein Bites was founded by <strong className="text-[#1a1a1a]">Videe</strong>, the chaotic but determined duo <strong className="text-[#1a1a1a]">Vidya + Deepali</strong>, who were tired of the same old sad &quot;healthy food&quot; situation. You know the one: bland salads, depressing diet plates, and food that makes you question all your life choices.
                             </p>
                         </FadeIn>
 
                         <FadeIn delay={0.2}>
                             <p className="text-[#1a1a1a] font-semibold text-lg sm:text-xl">
-                                We thought — what if healthy food didn&apos;t feel like punishment?
+                                We thought... what if healthy food didn&apos;t feel like punishment?
                             </p>
                         </FadeIn>
 
                         <FadeIn delay={0.25}>
                             <p>
-                                So we started experimenting with meals that are high-protein, filling, and actually exciting to eat. Think creamy, crunchy, spicy, fresh — the kind of food that fuels your workout <em>and</em> your mood.
+                                So we started experimenting with meals that are high-protein, filling, and actually exciting to eat. Think creamy, crunchy, spicy, fresh. The kind of food that fuels your workout <em>and</em> your mood.
                             </p>
                         </FadeIn>
 
@@ -185,13 +185,14 @@ const AboutPage = () => {
 
                         <FadeIn delay={0.5}>
                             <p>
-                                So if you&apos;re here for strong bodies, good vibes, and food that actually slaps — <strong className="text-[#1a1a1a]">welcome to the club.</strong>
+                                So if you&apos;re here for strong bodies, good vibes, and food that actually slaps... <strong className="text-[#1a1a1a]">welcome to the club.</strong>
                             </p>
                         </FadeIn>
 
                         <FadeIn delay={0.55}>
                             <p className="pt-4 text-[#1a1a1a] font-semibold italic text-right">
-                                — Videe<br />
+                                With love,<br />
+                                Videe<br />
                                 <span className="text-sm font-normal text-[#8a8580] not-italic">(Vidya + Deepali)</span>
                             </p>
                         </FadeIn>
@@ -242,7 +243,7 @@ const AboutPage = () => {
                             <FadeIn delay={0.2}>
                                 <p className="text-[#4a4a4a] leading-relaxed mb-4">
                                     We started with a single question: <em>"Why can't fast food be genuinely good for you?"</em>
-                                    Every Pro.tein.bites bowl is the answer — high protein, balanced macros, bold flavours, and zero guilt.
+                                    Every Pro.tein.bites bowl is the answer: high protein, balanced macros, bold flavours, and zero guilt.
                                 </p>
                             </FadeIn>
                             <FadeIn delay={0.3}>
@@ -255,7 +256,7 @@ const AboutPage = () => {
                         <FadeIn direction="left" delay={0.2}>
                             <div className="relative rounded-[25px] overflow-hidden aspect-[4/5]">
                                 <img
-                                    src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80"
+                                    src="https://res.cloudinary.com/dkyrhr705/image/upload/v1773580529/IMG_7945.JPG_vqbpvw.jpg"
                                     alt="Fresh ingredients spread"
                                     className="w-full h-full object-cover"
                                 />
@@ -306,7 +307,10 @@ const AboutPage = () => {
                         </h2>
                     </FadeIn>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                        {galleryImages.map((img, i) => (
+                        {(products.length > 0
+                            ? products.map(p => ({ src: p.image, alt: p.name }))
+                            : galleryFallback
+                        ).map((img, i) => (
                             <FadeIn key={i} delay={i * 0.08} direction={i % 2 === 0 ? 'up' : 'left'}>
                                 <div className="relative overflow-hidden rounded-2xl group">
                                     <img

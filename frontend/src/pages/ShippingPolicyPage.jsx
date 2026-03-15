@@ -106,12 +106,12 @@ const ShippingPolicyPage = () => {
                         </p>
                         <ol className="list-decimal list-inside space-y-2 ml-2">
                             <li><strong>Place your order</strong> through our website during the available ordering window.</li>
-                            <li><strong>Select a delivery slot</strong> for tomorrow — choose from the available time slots shown at checkout.</li>
+                            <li><strong>Select a delivery slot</strong> for tomorrow. Choose from the available time slots shown at checkout.</li>
                             <li><strong>Receive your order tomorrow</strong> during the selected slot at your delivery address.</li>
                         </ol>
                         {orderStart != null && orderEnd != null && (
                             <p className="text-sm text-[#8a8580] mt-2">
-                                * Current ordering window: <strong>{formatHour(orderStart)}</strong> to <strong>{formatHour(orderEnd)}</strong> IST. This may change — the latest hours are always enforced at checkout.
+                                * Current ordering window: <strong>{formatHour(orderStart)}</strong> to <strong>{formatHour(orderEnd)}</strong> IST. This may change, so the latest hours are always enforced at checkout.
                             </p>
                         )}
                     </Section>
@@ -152,7 +152,7 @@ const ShippingPolicyPage = () => {
                             </ul>
                         )}
                         <p>
-                            We are actively expanding our delivery zones. If your area is not listed, please reach out to us — we&apos;d love to know where our customers are!
+                            We are actively expanding our delivery zones. If your area is not listed, please reach out to us. We&apos;d love to know where our customers are!
                         </p>
                     </Section>
 

@@ -95,7 +95,7 @@ const TermsPage = () => {
 
                     <Section title="5. Intellectual Property &amp; Copyright">
                         <p>
-                            All content on this Website — including but not limited to text, graphics, logos, images, photographs, recipes, product descriptions, UI design, and software code — is the exclusive property of Pro.tein.bites and its founders, and is protected under the Indian Copyright Act, 1957 and international copyright laws.
+                            All content on this Website, including but not limited to text, graphics, logos, images, photographs, recipes, product descriptions, UI design, and software code, is the exclusive property of Pro.tein.bites and its founders, and is protected under the Indian Copyright Act, 1957 and international copyright laws.
                         </p>
                         <p>
                             <strong>You may NOT:</strong>

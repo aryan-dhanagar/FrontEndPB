@@ -8,12 +8,11 @@ const defaultSlides = [
     { name: 'Protein Power', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=80' },
 ];
 
-const defaultVideo = 'https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4';
-
 const HeroSection = () => {
     const [current, setCurrent] = useState(0);
     const [slides, setSlides] = useState(defaultSlides);
-    const [videoUrl, setVideoUrl] = useState(defaultVideo);
+    const [videoUrl, setVideoUrl] = useState(null);
+    const [videoLoading, setVideoLoading] = useState(true);
     const [videoError, setVideoError] = useState(false);
 
     // Load hero config from settings
@@ -22,8 +21,9 @@ const HeroSection = () => {
             .then(s => {
                 if (s.heroSlides && s.heroSlides.length > 0) setSlides(s.heroSlides);
                 if (s.heroVideo) setVideoUrl(s.heroVideo);
+                setVideoLoading(false);
             })
-            .catch(() => {});
+            .catch(() => setVideoLoading(false));
     }, []);
 
     useEffect(() => {
@@ -38,9 +38,14 @@ const HeroSection = () => {
         <section id="hero" className="w-full">
             {/* Desktop: 30/70 split | Mobile/Tablet: stacked */}
             <div className="flex flex-col md:flex-row w-full md:h-[480px] lg:h-[560px] gap-2 sm:gap-3 p-2 sm:p-3">
-                {/* Left: Video — fills 55vh on mobile, 30% on desktop */}
+                {/* Left: Video (only admin video, loading shimmer until ready) */}
                 <div className="w-full md:w-[30%] h-[55vh] sm:h-[50vh] md:h-full rounded-[20px] sm:rounded-[25px] overflow-hidden">
-                    {videoError ? (
+                    {videoLoading ? (
+                        /* Shimmer loading while fetching settings */
+                        <div className="w-full h-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 animate-pulse flex items-center justify-center">
+                            <div className="w-10 h-10 border-3 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                        </div>
+                    ) : !videoUrl || videoError ? (
                         <img src={slides[0]?.image || defaultSlides[0].image} alt="Hero" className="w-full h-full object-cover" />
                     ) : (
                         <video

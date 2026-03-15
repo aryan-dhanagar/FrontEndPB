@@ -126,13 +126,21 @@ const CheckoutPage = () => {
 
     const validate = () => {
         const e = {};
-        if (!form.customerName.trim()) e.customerName = 'Name is required';
-        if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Valid email required';
-        if (!form.deliveryArea) e.deliveryArea = 'Please select a delivery area';
-        if (!form.address.trim()) e.address = 'Full address is required';
-        if (!form.deliverySlot) e.deliverySlot = 'Please select a delivery slot';
+        if (!form.customerName.trim()) e.customerName = 'Please enter your full name';
+        if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = 'Please enter a valid email address';
+        if (!form.phone.trim() || form.phone.replace(/\D/g, '').length < 10) e.phone = 'Please enter a valid 10-digit phone number';
+        if (!form.deliveryArea) e.deliveryArea = 'Please select your delivery area';
+        if (!form.address.trim()) e.address = 'Please enter your full delivery address';
+        if (!form.deliverySlot) e.deliverySlot = 'Please select a delivery time slot';
         if (!form.deliveryDate) e.deliveryDate = 'Delivery date is required';
         setErrors(e);
+
+        // Scroll to first error field
+        if (Object.keys(e).length > 0) {
+            const firstErrorKey = Object.keys(e)[0];
+            const el = document.querySelector(`[data-field="${firstErrorKey}"]`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return Object.keys(e).length === 0;
     };
 
@@ -321,7 +329,7 @@ const CheckoutPage = () => {
                 >
                     <div>
                         <p className="font-semibold text-[#1a1a1a] text-sm">Verify your email to place an order</p>
-                        <p className="text-xs text-gray-500 mt-1">Quick verification — takes just 30 seconds.</p>
+                        <p className="text-xs text-gray-500 mt-1">Quick verification, takes just 30 seconds.</p>
                     </div>
                     <button
                         onClick={() => openLogin('checkout')}
@@ -345,51 +353,52 @@ const CheckoutPage = () => {
                         </div>
                     )}
 
-                    <div>
+                    <div data-field="customerName">
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
                         <input
                             type="text"
                             value={form.customerName}
                             onChange={e => setForm({ ...form, customerName: e.target.value })}
-                            className={`w-full px-4 py-3.5 border rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all ${errors.customerName ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all ${errors.customerName ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'}`}
                             placeholder="John Doe"
                         />
-                        {errors.customerName && <p className="text-xs text-red-500 mt-1">{errors.customerName}</p>}
+                        {errors.customerName && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.customerName}</p>}
                     </div>
 
-                    <div>
+                    <div data-field="email">
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email *</label>
                         <input
                             type="email"
                             value={form.email}
                             onChange={e => setForm({ ...form, email: e.target.value })}
-                            className={`w-full px-4 py-3.5 border rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all ${errors.email ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all ${errors.email ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'}`}
                             placeholder="you@example.com"
                             disabled={isLoggedIn}
                         />
-                        {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                        {errors.email && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.email}</p>}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
+                    <div data-field="phone">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone *</label>
                         <input
                             type="tel"
                             value={form.phone}
                             onChange={e => setForm({ ...form, phone: e.target.value })}
-                            className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all"
+                            className={`w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all ${errors.phone ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'}`}
                             placeholder="+91 98765 43210"
                         />
+                        {errors.phone && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.phone}</p>}
                     </div>
 
                     {/* ═══ DELIVERY AREA DROPDOWN ═══ */}
-                    <div>
+                    <div data-field="deliveryArea">
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
                             <MapPinIcon /> Delivery Area *
                         </label>
                         <select
                             value={form.deliveryArea}
                             onChange={e => setForm({ ...form, deliveryArea: e.target.value })}
-                            className={`w-full px-4 py-3.5 border rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all bg-white ${errors.deliveryArea ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all bg-white ${errors.deliveryArea ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'}`}
                         >
                             <option value="">Select your delivery area</option>
                             {areas.map(area => (
@@ -404,7 +413,6 @@ const CheckoutPage = () => {
                                 We deliver here ✓
                             </p>
                         )}
-                        {/* Delivery charge info based on area */}
                         {form.deliveryArea && (
                             <div className="mt-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
                                 <p className="text-xs font-semibold text-[#1a1a1a]">
@@ -417,19 +425,19 @@ const CheckoutPage = () => {
                                 </p>
                             </div>
                         )}
-                        {errors.deliveryArea && <p className="text-xs text-red-500 mt-1">{errors.deliveryArea}</p>}
+                        {errors.deliveryArea && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.deliveryArea}</p>}
                     </div>
 
-                    <div>
+                    <div data-field="address">
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Address (flat, building, landmark) *</label>
                         <textarea
                             value={form.address}
                             onChange={e => setForm({ ...form, address: e.target.value })}
                             rows={3}
-                            className={`w-full px-4 py-3.5 border rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all resize-none ${errors.address ? 'border-red-300' : 'border-gray-200'}`}
+                            className={`w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all resize-none ${errors.address ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'}`}
                             placeholder="Flat 4B, Sunshine Towers, Near Station"
                         />
-                        {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+                        {errors.address && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.address}</p>}
                     </div>
 
                     {/* ═══ DELIVERY SLOT SELECTOR ═══ */}
@@ -509,7 +517,7 @@ const CheckoutPage = () => {
                         disabled={submitting || outsideHours}
                         className="w-full bg-[#1a1a1a] text-white font-bold text-sm uppercase tracking-wider py-4 rounded-2xl hover:bg-[#333] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {submitting ? 'Placing Order...' : isLoggedIn ? `Place Order — ₹${finalTotal.toFixed(2)}` : 'Verify Email & Place Order'}
+                        {submitting ? 'Placing Order...' : isLoggedIn ? `Place Order · ₹${finalTotal.toFixed(2)}` : 'Verify Email & Place Order'}
                     </button>
                 </form>
 
@@ -528,7 +536,7 @@ const CheckoutPage = () => {
                                 <div key={item._id || item.id} className="flex items-center gap-3">
                                     <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-[#1a1a1a] truncate">{item.name}</p>
+                                        <p className="text-sm font-semibold text-[#1a1a1a] truncate">{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</p>
                                         <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
                                     </div>
                                     <p className="text-sm font-bold text-[#1a1a1a]">₹{(item.price * item.quantity).toFixed(2)}</p>

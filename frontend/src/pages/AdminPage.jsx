@@ -88,8 +88,9 @@ const statusFlow = ['placed', 'confirmed', 'preparing', 'out_for_delivery', 'del
 
 const emptyProduct = {
     name: '', description: '', longDescription: '', price: '',
-    image: '', images: '', video: '', category: 'Salad', ingredients: '',
-    calories: '', proteinPer100g: '', fiberPer100g: '', isVegan: true,
+    image: '', images: '', video: '', category: 'Meals', ingredients: '',
+    calories: '', protein: '',
+    hasSizes: false, sizes: [{ label: 'Small', price: '' }, { label: 'Medium', price: '' }, { label: 'Large', price: '' }],
 };
 
 /* ═══════════════════════════════════════════════════════════════════ */
@@ -287,13 +288,17 @@ const AdminDashboard = ({ admin, onLogout }) => {
     const openAddForm = () => { setEditingProduct(null); setForm(emptyProduct); setFormError(''); setFormSuccess(''); setShowForm(true); };
     const openEditForm = (product) => {
         setEditingProduct(product);
+        const existingSizes = product.sizes && product.sizes.length > 0
+            ? product.sizes.map(s => ({ label: s.label || '', price: s.price || '' }))
+            : [{ label: 'Small', price: '' }, { label: 'Medium', price: '' }, { label: 'Large', price: '' }];
         setForm({
             name: product.name || '', description: product.description || '',
             longDescription: product.longDescription || '', price: product.price || '',
             image: product.image || '', images: (product.images || []).join(', '),
-            video: product.video || '', category: product.category || 'Salad',
-            ingredients: (product.ingredients || []).join(', '), calories: product.calories || '', proteinPer100g: product.proteinPer100g || '', fiberPer100g: product.fiberPer100g || '',
-            isVegan: product.isVegan !== false,
+            video: product.video || '', category: product.category || 'Meals',
+            ingredients: (product.ingredients || []).join(', '), calories: product.calories || '', protein: product.protein || '',
+            hasSizes: product.sizes && product.sizes.length > 0,
+            sizes: existingSizes,
         });
         setFormError(''); setFormSuccess(''); setShowForm(true);
     };
@@ -302,11 +307,13 @@ const AdminDashboard = ({ admin, onLogout }) => {
         e.preventDefault(); setFormError(''); setFormSuccess('');
         if (!form.name.trim() || !form.price || !form.image.trim()) { setFormError('Name, Price, and Image URL are required.'); return; }
         const payload = {
-            ...form, price: parseFloat(form.price), proteinPer100g: form.proteinPer100g ? parseFloat(form.proteinPer100g) : 0, fiberPer100g: form.fiberPer100g ? parseFloat(form.fiberPer100g) : 0,
+            ...form, price: parseFloat(form.price), protein: form.protein || '',
             ingredients: form.ingredients ? form.ingredients.split(',').map(s => s.trim()).filter(Boolean) : [],
             images: form.images ? form.images.split(',').map(s => s.trim()).filter(Boolean) : [],
             video: form.video ? form.video.trim() : '',
+            sizes: form.hasSizes ? form.sizes.filter(s => s.label && s.price).map(s => ({ label: s.label, price: parseFloat(s.price) })) : [],
         };
+        delete payload.hasSizes;
         try {
             if (editingProduct) { await adminUpdateProduct(editingProduct._id, payload); setFormSuccess('Product updated!'); }
             else { await adminCreateProduct(payload); setFormSuccess('Product created!'); }
@@ -431,7 +438,7 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                         <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider">Price</th>
                                         <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider hidden sm:table-cell">Stock/Day</th>
                                         <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider hidden sm:table-cell">Category</th>
-                                        <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider hidden md:table-cell">Vegan</th>
+                                        <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider hidden md:table-cell">Sizes</th>
                                         <th className="py-3 px-4 font-bold text-gray-400 text-xs uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -461,9 +468,12 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                                     </button>
                                                 )}
                                             </td>
-                                            <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">{p.category || '—'}</td>
+                                            <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">{p.category || 'N/A'}</td>
                                             <td className="py-3 px-4 hidden md:table-cell">
-                                                {p.isVegan ? <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Yes</span> : <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">No</span>}
+                                                {p.sizes && p.sizes.length > 0
+                                                    ? <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{p.sizes.map(s => s.label).join(', ')}</span>
+                                                    : <span className="text-xs text-gray-400">One size</span>
+                                                }
                                             </td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-2 justify-end">
@@ -507,10 +517,11 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                         </div>
                                         <p className="font-black text-lg text-[#1a1a1a]">₹{order.totalAmount?.toFixed(2)}</p>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 bg-[#faf8f5] rounded-xl p-4 text-sm">
-                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Customer</p><p className="font-semibold text-[#1a1a1a] mt-0.5">{order.customerName || '—'}</p></div>
-                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Email</p><p className="text-gray-600 mt-0.5">{order.email || '—'}</p></div>
-                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Address</p><p className="text-gray-600 mt-0.5 truncate">{order.address || '—'}</p></div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 bg-[#faf8f5] rounded-xl p-4 text-sm">
+                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Customer</p><p className="font-semibold text-[#1a1a1a] mt-0.5">{order.customerName || 'N/A'}</p></div>
+                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Phone</p><p className="text-gray-600 mt-0.5">{order.phone || 'N/A'}</p></div>
+                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Email</p><p className="text-gray-600 mt-0.5">{order.email || 'N/A'}</p></div>
+                                        <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Address</p><p className="text-gray-600 mt-0.5 truncate">{order.address || 'N/A'}</p></div>
                                     </div>
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {order.items?.map((item, i) => (
@@ -581,8 +592,8 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
-                                        <div><p className="text-[10px] font-bold uppercase text-gray-400">Area</p><p className="font-medium text-[#1a1a1a]">{order.deliveryArea || '—'}</p></div>
-                                        <div><p className="text-[10px] font-bold uppercase text-gray-400">Address</p><p className="text-gray-600 text-xs">{order.address || '—'}</p></div>
+                                        <div><p className="text-[10px] font-bold uppercase text-gray-400">Area</p><p className="font-medium text-[#1a1a1a]">{order.deliveryArea || 'N/A'}</p></div>
+                                        <div><p className="text-[10px] font-bold uppercase text-gray-400">Address</p><p className="text-gray-600 text-xs">{order.address || 'N/A'}</p></div>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 mb-3">
                                         {order.items?.map((item, i) => (
@@ -695,6 +706,20 @@ const AdminDashboard = ({ admin, onLogout }) => {
                             </div>
                         </div>
 
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                            <h3 className="font-bold text-[#1a1a1a] mb-4">Product Categories</h3>
+                            <p className="text-xs text-gray-400 mb-3">Manage the categories available when adding products. These also appear as filter tabs on the homepage.</p>
+                            <div className="space-y-2">
+                                {(settingsForm.productCategories || []).map((cat, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <input type="text" value={cat} onChange={e => { const c = [...(settingsForm.productCategories || [])]; c[i] = e.target.value; setSettingsForm({ ...settingsForm, productCategories: c }); }} className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]" />
+                                        <button onClick={() => { const c = (settingsForm.productCategories || []).filter((_, j) => j !== i); setSettingsForm({ ...settingsForm, productCategories: c }); }} className="text-red-400 hover:text-red-600 p-1"><TrashIcon /></button>
+                                    </div>
+                                ))}
+                                <button onClick={() => setSettingsForm({ ...settingsForm, productCategories: [...(settingsForm.productCategories || []), ''] })} className="text-xs font-bold text-[#d4912a] hover:underline mt-1">+ Add Category</button>
+                            </div>
+                        </div>
+
                         {settingsMsg && <div className={`text-sm font-medium px-4 py-2.5 rounded-xl ${settingsMsg.includes('Failed') ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>{settingsMsg}</div>}
                         <button onClick={handleSettingsSave} disabled={settingsSaving} className="bg-[#1a1a1a] text-white font-bold text-sm uppercase tracking-wider px-8 py-3 rounded-2xl hover:bg-[#333] transition-colors disabled:opacity-50">
                             {settingsSaving ? 'Saving...' : 'Save Settings'}
@@ -716,9 +741,29 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                 <div><label className="block text-sm font-semibold text-gray-700 mb-1">Short Description</label><input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="Brief description" /></div>
                                 <div><label className="block text-sm font-semibold text-gray-700 mb-1">Long Description</label><textarea value={form.longDescription} onChange={e => setForm({ ...form, longDescription: e.target.value })} rows={3} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent resize-none" placeholder="Detailed description" /></div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Price (₹) *</label><input type="number" step="0.01" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="349" /></div>
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Protein (per 100g)</label><input type="number" step="0.1" value={form.proteinPer100g} onChange={e => setForm({ ...form, proteinPer100g: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="25" /></div>
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Fiber (per 100g)</label><input type="number" step="0.1" value={form.fiberPer100g} onChange={e => setForm({ ...form, fiberPer100g: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="8" /></div>
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Price (₹) * <span className="text-gray-400 font-normal">{form.hasSizes ? '(base/default)' : ''}</span></label><input type="number" step="0.01" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="349" /></div>
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Protein</label><input type="text" value={form.protein} onChange={e => setForm({ ...form, protein: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="e.g. 25g per 100g" /></div>
+                                </div>
+
+                                {/* Sizes toggle */}
+                                <div className="bg-gray-50 rounded-xl p-4">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-3">
+                                        <input type="checkbox" checked={form.hasSizes} onChange={e => setForm({ ...form, hasSizes: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-[#1a1a1a] focus:ring-[#1a1a1a]" />
+                                        <span className="text-sm font-semibold text-gray-700">This product has size options (S/M/L)</span>
+                                    </label>
+                                    {form.hasSizes && (
+                                        <div className="space-y-2">
+                                            {form.sizes.map((s, i) => (
+                                                <div key={i} className="flex items-center gap-3">
+                                                    <input type="text" value={s.label} onChange={e => { const ns = [...form.sizes]; ns[i] = { ...ns[i], label: e.target.value }; setForm({ ...form, sizes: ns }); }} className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1a1a1a]" placeholder="Size name" />
+                                                    <span className="text-gray-400 text-sm">₹</span>
+                                                    <input type="number" step="0.01" value={s.price} onChange={e => { const ns = [...form.sizes]; ns[i] = { ...ns[i], price: e.target.value }; setForm({ ...form, sizes: ns }); }} className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1a1a1a]" placeholder="Price" />
+                                                    <button type="button" onClick={() => { const ns = form.sizes.filter((_, j) => j !== i); setForm({ ...form, sizes: ns }); }} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                                                </div>
+                                            ))}
+                                            <button type="button" onClick={() => setForm({ ...form, sizes: [...form.sizes, { label: '', price: '' }] })} className="text-xs font-medium text-[#1a1a1a] hover:underline mt-1">+ Add size</button>
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Main Image URL *</label>
@@ -742,8 +787,7 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                     {form.video && <p className="text-xs text-green-600 mt-1 font-medium">✓ Video URL added</p>}
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Category</label><select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent"><option value="Salad">Salad</option><option value="Bowl">Bowl</option><option value="Smoothie">Smoothie</option><option value="Wrap">Wrap</option><option value="Snack">Snack</option><option value="Classic">Classic</option><option value="Premium">Premium</option></select></div>
-                                    <div className="flex items-end"><label className="flex items-center gap-2 cursor-pointer py-3"><input type="checkbox" checked={form.isVegan} onChange={e => setForm({ ...form, isVegan: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500" /><span className="text-sm font-semibold text-gray-700">Vegan</span></label></div>
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Category</label><select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent">{(siteSettings?.productCategories || ['Meals', 'Rice Bowls', 'Budget Bites', 'Protein Picks']).map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div>
                                 </div>
                                 <div><label className="block text-sm font-semibold text-gray-700 mb-1">Ingredients (comma separated)</label><input type="text" value={form.ingredients} onChange={e => setForm({ ...form, ingredients: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent" placeholder="Kale, Quinoa, Avocado" /></div>
                                 {formError && <div className="text-sm text-red-600 bg-red-50 px-4 py-2.5 rounded-xl font-medium">{formError}</div>}

@@ -63,11 +63,11 @@ const PrivacyPolicyPage = () => {
                     <Section title="2. Information We Collect">
                         <p><strong>Personal Information you provide directly:</strong></p>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>Name</strong> — to process and deliver your orders</li>
-                            <li><strong>Email address</strong> — for account verification (OTP), order confirmation, and delivery updates</li>
-                            <li><strong>Phone number</strong> (optional) — for delivery coordination</li>
-                            <li><strong>Delivery address</strong> — to deliver your orders</li>
-                            <li><strong>Delivery area</strong> — to verify serviceability</li>
+                            <li><strong>Name</strong>: to process and deliver your orders</li>
+                            <li><strong>Email address</strong>: for account verification (OTP), order confirmation, and delivery updates</li>
+                            <li><strong>Phone number</strong> (optional): for delivery coordination</li>
+                            <li><strong>Delivery address</strong>: to deliver your orders</li>
+                            <li><strong>Delivery area</strong>: to verify serviceability</li>
                         </ul>
                         <p><strong>Payment Information:</strong></p>
                         <p>
@@ -100,10 +100,10 @@ const PrivacyPolicyPage = () => {
                             We do <strong>NOT</strong> sell, trade, or rent your personal information to third parties for marketing purposes. We may share your data only in the following limited circumstances:
                         </p>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>Razorpay</strong> — payment processing (governed by Razorpay&apos;s privacy policy)</li>
-                            <li><strong>Email service providers</strong> — to send order confirmations and updates</li>
-                            <li><strong>Legal requirements</strong> — if required by law, court order, or government authority</li>
-                            <li><strong>Business protection</strong> — to enforce our Terms, protect our rights, or ensure safety</li>
+                            <li><strong>Razorpay</strong>: payment processing (governed by Razorpay&apos;s privacy policy)</li>
+                            <li><strong>Email service providers</strong>: to send order confirmations and updates</li>
+                            <li><strong>Legal requirements</strong>: if required by law, court order, or government authority</li>
+                            <li><strong>Business protection</strong>: to enforce our Terms, protect our rights, or ensure safety</li>
                         </ul>
                     </Section>
 
@@ -121,19 +121,19 @@ const PrivacyPolicyPage = () => {
                             We retain your personal information only for as long as necessary to fulfill the purposes outlined in this policy:
                         </p>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>Order data</strong> — retained for up to 2 years for business records and dispute resolution</li>
-                            <li><strong>Account data</strong> (email, name) — retained as long as your account is active</li>
-                            <li><strong>Payment references</strong> — retained as per applicable tax and financial regulations</li>
+                            <li><strong>Order data</strong>: retained for up to 2 years for business records and dispute resolution</li>
+                            <li><strong>Account data</strong> (email, name): retained as long as your account is active</li>
+                            <li><strong>Payment references</strong>: retained as per applicable tax and financial regulations</li>
                         </ul>
                     </Section>
 
                     <Section title="7. Your Rights">
                         <p>Under applicable Indian law, you have the right to:</p>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>Access</strong> — request a copy of the personal data we hold about you</li>
-                            <li><strong>Correction</strong> — request correction of inaccurate or incomplete data</li>
-                            <li><strong>Deletion</strong> — request deletion of your personal data (subject to legal obligations)</li>
-                            <li><strong>Withdrawal of consent</strong> — withdraw your consent for data processing at any time</li>
+                            <li><strong>Access</strong>: request a copy of the personal data we hold about you</li>
+                            <li><strong>Correction</strong>: request correction of inaccurate or incomplete data</li>
+                            <li><strong>Deletion</strong>: request deletion of your personal data (subject to legal obligations)</li>
+                            <li><strong>Withdrawal of consent</strong>: withdraw your consent for data processing at any time</li>
                         </ul>
                         <p>
                             To exercise any of these rights, please contact us at the email address provided below.

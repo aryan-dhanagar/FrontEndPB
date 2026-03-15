@@ -140,4 +140,21 @@ export const adminUpdateSettings = async (settingsData) => {
     return data;
 };
 
+// ─── Reviews ───
+export const submitReview = async (orderId, email, reviews) => {
+    const { data } = await api.post(`/reviews/${orderId}`, { email, reviews });
+    return data;
+};
+
+export const getProductReviews = async (productId) => {
+    const { data } = await api.get(`/reviews/product/${productId}`);
+    return data;
+};
+
+export const getOrderForReview = async (orderId, email) => {
+    const { data } = await api.get(`/reviews/order/${orderId}?email=${email}`);
+    return data;
+};
+
 export default api;
+

@@ -21,12 +21,12 @@ const features = [
     {
         icon: '🥡',
         title: 'Eco‑Friendly Kraft Bowls',
-        desc: 'Every meal is served in a sturdy, food-grade kraft paper bowl — biodegradable, microwave-safe, and leak-resistant. No plastic, ever.',
+        desc: 'Every meal is served in a sturdy, food-grade kraft paper bowl. Biodegradable, microwave-safe, and leak-resistant. No plastic, ever.',
     },
     {
         icon: '🧤',
         title: 'Prepared with Gloves & Masks',
-        desc: 'Our kitchen team follows strict hygiene protocols — gloves, masks, hairnets, and sanitised surfaces at every step of preparation.',
+        desc: 'Our kitchen team follows strict hygiene protocols: gloves, masks, hairnets, and sanitised surfaces at every step of preparation.',
     },
     {
         icon: '🌡️',
@@ -46,7 +46,7 @@ const features = [
     {
         icon: '🥦',
         title: 'Farm-Fresh Ingredients',
-        desc: 'We source vegetables, grains, and proteins fresh daily from trusted local suppliers — vibrant colours, real nutrition.',
+        desc: 'We source vegetables, grains, and proteins fresh daily from trusted local suppliers. Vibrant colours, real nutrition.',
     },
 ];
 
@@ -76,7 +76,7 @@ const PackagingSection = () => {
                             <div className="rounded-3xl overflow-hidden shadow-2xl">
                                 <img
                                     src="/images/package.jpeg"
-                                    alt="Pro.tein.bites packaging — fresh protein bowl in eco-friendly kraft bowl"
+                                    alt="Pro.tein.bites packaging, fresh protein bowl in eco-friendly kraft bowl"
                                     className="w-full aspect-[4/5] sm:aspect-square object-cover"
                                 />
                             </div>

@@ -157,6 +157,11 @@ const Header = () => {
                                 </Link>
                             </li>
                             <li>
+                                <Link to="/about" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-navy-900 hover:text-olive-600 transition-colors duration-300">
+                                    Founders/About Us
+                                </Link>
+                            </li>
+                            <li>
                                 <Link to="/developers" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-navy-900 hover:text-olive-600 transition-colors duration-300">
                                     Developers
                                 </Link>
