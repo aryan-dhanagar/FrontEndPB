@@ -14,6 +14,7 @@ const HeroSection = () => {
     const [current, setCurrent] = useState(0);
     const [slides, setSlides] = useState(defaultSlides);
     const [videoUrl, setVideoUrl] = useState(defaultVideo);
+    const [videoError, setVideoError] = useState(false);
 
     // Load hero config from settings
     useEffect(() => {
@@ -39,16 +40,24 @@ const HeroSection = () => {
             <div className="flex flex-col md:flex-row w-full md:h-[480px] lg:h-[560px] gap-2 sm:gap-3 p-2 sm:p-3">
                 {/* Left: Video — fills 55vh on mobile, 30% on desktop */}
                 <div className="w-full md:w-[30%] h-[55vh] sm:h-[50vh] md:h-full rounded-[20px] sm:rounded-[25px] overflow-hidden">
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                        key={videoUrl}
-                    >
-                        <source src={videoUrl} type="video/mp4" />
-                    </video>
+                    {videoError ? (
+                        <img src={slides[0]?.image || defaultSlides[0].image} alt="Hero" className="w-full h-full object-cover" />
+                    ) : (
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            webkit-playsinline="true"
+                            preload="auto"
+                            poster={slides[0]?.image || defaultSlides[0].image}
+                            className="w-full h-full object-cover"
+                            key={videoUrl}
+                            onError={() => setVideoError(true)}
+                        >
+                            <source src={videoUrl} type="video/mp4" />
+                        </video>
+                    )}
                 </div>
 
                 {/* Right: Slideshow — 60vh on mobile, 70% on desktop */}

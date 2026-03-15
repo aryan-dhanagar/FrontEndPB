@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { createOrder, getSettings, getSlotAvailability } from '../services/api';
+import { createOrder, createRazorpayOrder, getSettings, getSlotAvailability } from '../services/api';
 
 /* ── SVG Icons ─────────────────────────────────────────────────── */
 const ClockIcon = () => (
@@ -149,7 +149,7 @@ const CheckoutPage = () => {
 
         setSubmitting(true);
         try {
-            const orderData = {
+            const orderPayload = {
                 customerName: form.customerName,
                 email: form.email,
                 phone: form.phone,
@@ -165,19 +165,71 @@ const CheckoutPage = () => {
                     image: item.image,
                 })),
                 totalAmount: finalTotal,
-                paymentStatus: 'paid',
             };
 
-            const order = await createOrder(orderData);
+            // --- Razorpay Payment Flow ---
+            const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+            if (razorpayKeyId && window.Razorpay) {
+                // 1. Create Razorpay order on backend
+                const rzpOrder = await createRazorpayOrder(finalTotal);
+
+                // 2. Open Razorpay checkout dialog
+                await new Promise((resolve, reject) => {
+                    const options = {
+                        key: razorpayKeyId,
+                        amount: rzpOrder.amount,
+                        currency: rzpOrder.currency || 'INR',
+                        name: 'Pro.tein.bites',
+                        description: 'Order Payment',
+                        order_id: rzpOrder.id,
+                        handler: function (response) {
+                            // Payment successful — attach IDs to order
+                            orderPayload.razorpayOrderId = response.razorpay_order_id;
+                            orderPayload.razorpayPaymentId = response.razorpay_payment_id;
+                            orderPayload.razorpaySignature = response.razorpay_signature;
+                            orderPayload.paymentStatus = 'paid';
+                            resolve();
+                        },
+                        prefill: {
+                            name: form.customerName,
+                            email: form.email,
+                            contact: form.phone,
+                        },
+                        theme: { color: '#1a1a1a' },
+                        modal: {
+                            ondismiss: function () {
+                                reject(new Error('Payment cancelled'));
+                            },
+                        },
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        reject(new Error(response.error?.description || 'Payment failed'));
+                    });
+                    rzp.open();
+                });
+            } else {
+                // No Razorpay key configured — direct order (for testing)
+                orderPayload.paymentStatus = 'paid';
+            }
+
+            // 3. Create the order on backend (with payment IDs if Razorpay was used)
+            const order = await createOrder(orderPayload);
             setOrderSuccess(order);
             clearCart();
         } catch (err) {
-            const msg = err.response?.data?.message || 'Order failed. Try again.';
-            const code = err.response?.data?.code;
-            if (code === 'OUTSIDE_HOURS') {
-                setOutsideHours(true);
+            if (err.message === 'Payment cancelled') {
+                setErrors({ submit: 'Payment was cancelled. Please try again.' });
+            } else {
+                const msg = err.response?.data?.message || err.message || 'Order failed. Try again.';
+                const code = err.response?.data?.code;
+                if (code === 'OUTSIDE_HOURS') {
+                    setOutsideHours(true);
+                }
+                setErrors({ submit: msg });
             }
-            setErrors({ submit: msg });
         } finally {
             setSubmitting(false);
         }
