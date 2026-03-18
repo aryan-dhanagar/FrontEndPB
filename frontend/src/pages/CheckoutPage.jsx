@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { createOrder, createRazorpayOrder, getSettings, getSlotAvailability } from '../services/api';
+import { createOrder, createRazorpayOrder, validateOrder, getSettings, getSlotAvailability } from '../services/api';
 
 /* ── SVG Icons ─────────────────────────────────────────────────── */
 const ClockIcon = () => (
@@ -78,6 +78,11 @@ const CheckoutPage = () => {
             try {
                 const s = await getSettings();
                 setSettings(s);
+
+                // Proactively check if ordering hours are closed
+                if (!checkOrderingHours(s)) {
+                    setOutsideHours(true);
+                }
 
                 const tomorrow = getTomorrowDate();
                 setForm(prev => ({ ...prev, deliveryDate: tomorrow }));
@@ -175,14 +180,28 @@ const CheckoutPage = () => {
                 totalAmount: finalTotal,
             };
 
-            // --- Razorpay Payment Flow ---
+            // ─── STEP 1: Pre-validate BEFORE payment ───
+            try {
+                await validateOrder(orderPayload);
+            } catch (validationErr) {
+                const msg = validationErr.response?.data?.message || 'Validation failed. Please try again.';
+                const code = validationErr.response?.data?.code;
+                if (code === 'OUTSIDE_HOURS') {
+                    setOutsideHours(true);
+                }
+                setErrors({ submit: msg });
+                setSubmitting(false);
+                return; // Stop here — do NOT proceed to payment
+            }
+
+            // ─── STEP 2: Razorpay Payment Flow (only if validation passed) ───
             const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
             if (razorpayKeyId && window.Razorpay) {
-                // 1. Create Razorpay order on backend
+                // Create Razorpay order on backend
                 const rzpOrder = await createRazorpayOrder(finalTotal);
 
-                // 2. Open Razorpay checkout dialog
+                // Open Razorpay checkout dialog
                 await new Promise((resolve, reject) => {
                     const options = {
                         key: razorpayKeyId,
@@ -223,7 +242,7 @@ const CheckoutPage = () => {
                 orderPayload.paymentStatus = 'paid';
             }
 
-            // 3. Create the order on backend (with payment IDs if Razorpay was used)
+            // ─── STEP 3: Create the order on backend (with payment IDs) ───
             const order = await createOrder(orderPayload);
             setOrderSuccess(order);
             clearCart();

@@ -5,7 +5,6 @@ import { useCart } from '../context/CartContext';
 const CartPage = () => {
     const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
     const navigate = useNavigate();
-    const deliveryFee = cartTotal >= 30 ? 0 : 4.99;
 
     if (cartCount === 0) {
         return (
@@ -118,19 +117,12 @@ const CartPage = () => {
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Delivery</span>
-                                <span className={`font-semibold ${deliveryFee === 0 ? 'text-green-600' : 'text-[#1a1a1a]'}`}>
-                                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
-                                </span>
+                                <span className="text-xs text-gray-400 italic">Calculated at checkout</span>
                             </div>
-                            {deliveryFee > 0 && (
-                                <p className="text-xs text-[#d4912a]">
-                                    Add ₹{(30 - cartTotal).toFixed(2)} more for free delivery!
-                                </p>
-                            )}
                             <div className="border-t border-[#e8e3dc] pt-3 flex justify-between">
                                 <span className="font-black text-[#1a1a1a]">Total</span>
                                 <span className="font-black text-lg text-[#1a1a1a]">
-                                    ₹{(cartTotal + deliveryFee).toFixed(2)}
+                                    ₹{cartTotal.toFixed(2)}
                                 </span>
                             </div>
                         </div>

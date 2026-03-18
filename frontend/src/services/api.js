@@ -49,6 +49,11 @@ export const createRazorpayOrder = async (amount) => {
     return data;
 };
 
+export const validateOrder = async (orderData) => {
+    const { data } = await api.post('/orders/validate', orderData);
+    return data;
+};
+
 export const createOrder = async (orderData) => {
     const { data } = await api.post('/orders', orderData);
     return data;
