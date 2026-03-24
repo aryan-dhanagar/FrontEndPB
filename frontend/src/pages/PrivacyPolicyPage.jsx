@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import useDocumentTitle from '../utils/useDocumentTitle';
 
 const FadeIn = ({ children, delay = 0, className = '' }) => {
     const ref = useRef(null);
@@ -28,6 +29,7 @@ const Section = ({ title, children }) => (
 );
 
 const PrivacyPolicyPage = () => {
+    useDocumentTitle('Privacy Policy');
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
     return (

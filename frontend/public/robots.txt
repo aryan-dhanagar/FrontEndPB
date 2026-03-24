@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /checkout
-Disallow: /success
+Disallow: /cart
+Disallow: /orders
+Disallow: /track/
 
-Sitemap: https://freshbowl.in/sitemap.xml
+
+Sitemap: https://proteinbitess.com/sitemap.xml

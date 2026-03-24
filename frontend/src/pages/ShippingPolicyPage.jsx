@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getSettings } from '../services/api';
+import useDocumentTitle from '../utils/useDocumentTitle';
 
 const FadeIn = ({ children, delay = 0, className = '' }) => {
     const ref = useRef(null);
@@ -36,6 +37,7 @@ const formatHour = (h) => {
 };
 
 const ShippingPolicyPage = () => {
+    useDocumentTitle('Shipping & Delivery Policy');
     const [settings, setSettings] = useState(null);
 
     useEffect(() => {

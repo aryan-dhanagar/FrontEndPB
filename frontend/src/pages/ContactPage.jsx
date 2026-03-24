@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
+import useDocumentTitle from '../utils/useDocumentTitle';
 
 const FadeIn = ({ children, delay = 0, className = '' }) => {
     const ref = useRef(null);
@@ -37,6 +38,7 @@ const contactCards = [
 ];
 
 const ContactPage = () => {
+    useDocumentTitle('Contact Us');
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
     return (

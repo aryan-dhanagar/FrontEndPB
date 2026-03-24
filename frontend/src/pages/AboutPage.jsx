@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getProducts } from '../services/api';
+import useDocumentTitle from '../utils/useDocumentTitle';
 
 /* ─── reusable fade-in wrapper ─── */
 const FadeIn = ({ children, delay = 0, direction = 'up', className = '' }) => {
@@ -67,6 +68,7 @@ const values = [
 ];
 
 const AboutPage = () => {
+    useDocumentTitle('About Us — Our Story');
     const [products, setProducts] = useState([]);
     const [productsLoading, setProductsLoading] = useState(true);
 
