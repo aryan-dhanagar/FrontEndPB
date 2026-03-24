@@ -146,6 +146,46 @@ const ProductPage = () => {
         setActiveImageIndex(0);
     }, [id]);
 
+    // SEO: Dynamic page title
+    useDocumentTitle(product ? `${product.name} — Protein Bowl` : 'Loading...');
+
+    // SEO: Inject Product JSON-LD structured data
+    useEffect(() => {
+        if (!product) return;
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'product-jsonld';
+        script.textContent = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.name,
+            "image": product.image,
+            "description": product.longDescription || product.description || '',
+            "brand": { "@type": "Brand", "name": "Pro.tein.bites" },
+            "offers": {
+                "@type": "Offer",
+                "url": `https://proteinbitess.com/product/${product.slug || product._id}`,
+                "priceCurrency": "INR",
+                "price": product.price,
+                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+            },
+            ...(reviewCount > 0 && {
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": avgRating,
+                    "reviewCount": reviewCount
+                }
+            })
+        });
+        const old = document.getElementById('product-jsonld');
+        if (old) old.remove();
+        document.head.appendChild(script);
+        return () => {
+            const el = document.getElementById('product-jsonld');
+            if (el) el.remove();
+        };
+    }, [product, avgRating, reviewCount]);
+
     if (loading) {
         return (
             <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
@@ -191,46 +231,6 @@ const ProductPage = () => {
         }, quantity);
         setQuantity(1);
     };
-
-    useDocumentTitle(product ? `${product.name} — Protein Bowl` : 'Loading...');
-
-    // Inject Product JSON-LD structured data for SEO
-    useEffect(() => {
-        if (!product) return;
-        const script = document.createElement('script');
-        script.type = 'application/ld+json';
-        script.id = 'product-jsonld';
-        script.textContent = JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            "name": product.name,
-            "image": product.image,
-            "description": product.longDescription || product.description || '',
-            "brand": { "@type": "Brand", "name": "Pro.tein.bites" },
-            "offers": {
-                "@type": "Offer",
-                "url": `https://proteinbitess.com/product/${product.slug || product._id}`,
-                "priceCurrency": "INR",
-                "price": product.price,
-                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
-            },
-            ...(reviewCount > 0 && {
-                "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": avgRating,
-                    "reviewCount": reviewCount
-                }
-            })
-        });
-        // Remove old one if exists
-        const old = document.getElementById('product-jsonld');
-        if (old) old.remove();
-        document.head.appendChild(script);
-        return () => {
-            const el = document.getElementById('product-jsonld');
-            if (el) el.remove();
-        };
-    }, [product, avgRating, reviewCount]);
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
