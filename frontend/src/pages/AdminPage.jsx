@@ -523,6 +523,12 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                         <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Email</p><p className="text-gray-600 mt-0.5">{order.email || 'N/A'}</p></div>
                                         <div><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Address</p><p className="text-gray-600 mt-0.5 truncate">{order.address || 'N/A'}</p></div>
                                     </div>
+                                    {order.cookingInstructions && (
+                                        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-0.5">🍳 Cooking Instructions</p>
+                                            <p className="text-sm text-[#1a1a1a]">{order.cookingInstructions}</p>
+                                        </div>
+                                    )}
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {order.items?.map((item, i) => (
                                             <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5">
@@ -595,6 +601,12 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                         <div><p className="text-[10px] font-bold uppercase text-gray-400">Area</p><p className="font-medium text-[#1a1a1a]">{order.deliveryArea || 'N/A'}</p></div>
                                         <div><p className="text-[10px] font-bold uppercase text-gray-400">Address</p><p className="text-gray-600 text-xs">{order.address || 'N/A'}</p></div>
                                     </div>
+                                    {order.cookingInstructions && (
+                                        <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                                            <p className="text-[10px] font-bold uppercase text-amber-600 mb-0.5">🍳 Cooking Instructions</p>
+                                            <p className="text-xs text-[#1a1a1a]">{order.cookingInstructions}</p>
+                                        </div>
+                                    )}
                                     <div className="flex flex-wrap gap-1.5 mb-3">
                                         {order.items?.map((item, i) => (
                                             <span key={i} className="text-xs bg-gray-50 rounded-lg px-2 py-1 font-medium">{item.name} ×{item.quantity}</span>

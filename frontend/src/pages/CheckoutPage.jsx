@@ -34,6 +34,7 @@ const CheckoutPage = () => {
         phone: '',
         address: '',
         deliveryArea: '',
+        cookingInstructions: '',
         deliverySlot: '',
         deliveryDate: '',
     });
@@ -168,6 +169,7 @@ const CheckoutPage = () => {
                 phone: form.phone,
                 address: form.address,
                 deliveryArea: form.deliveryArea,
+                cookingInstructions: form.cookingInstructions,
                 deliverySlot: form.deliverySlot,
                 deliveryDate: form.deliveryDate,
                 items: cartItems.map(item => ({
@@ -457,6 +459,20 @@ const CheckoutPage = () => {
                             placeholder="Flat 4B, Sunshine Towers, Near Station"
                         />
                         {errors.address && <p className="text-xs text-red-600 font-medium mt-1.5 flex items-center gap-1">⚠ {errors.address}</p>}
+                    </div>
+
+                    {/* ═══ COOKING INSTRUCTIONS (Optional) ═══ */}
+                    <div data-field="cookingInstructions">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cooking Instructions <span className="text-gray-400 font-normal">(optional)</span></label>
+                        <textarea
+                            value={form.cookingInstructions}
+                            onChange={e => setForm({ ...form, cookingInstructions: e.target.value })}
+                            rows={2}
+                            className="w-full px-4 py-3.5 border-2 rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent transition-all resize-none border-gray-200"
+                            placeholder="e.g. Extra spicy, no onions, less oil..."
+                            maxLength={300}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Any special requests for how you'd like your food prepared</p>
                     </div>
 
                     {/* ═══ DELIVERY SLOT SELECTOR ═══ */}
