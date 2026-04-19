@@ -220,7 +220,9 @@ const ProductPage = () => {
     const pid = product._id || product.id;
     const inCart = isInCart(pid);
     const qtyInCart = getQuantityInCart(pid);
-    const wasJustAdded = justAdded === pid;
+    // cartKey includes the selected size so the feedback is per-variant
+    const currentCartKey = selectedSize ? `${pid}|${selectedSize.label}` : pid;
+    const wasJustAdded = justAdded === currentCartKey;
 
     const handleAddToCart = () => {
         const effectivePrice = selectedSize ? selectedSize.price : product.price;
@@ -375,11 +377,11 @@ const ProductPage = () => {
                     {product.sizes && product.sizes.length > 0 && (
                         <div className="mb-6">
                             <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-3">Choose Size</p>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                                 {product.sizes.map((s, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => setSelectedSize(s)}
+                                        onClick={() => setSelectedSize(prev => prev?.label === s.label ? null : s)}
                                         className={`flex-1 py-3 px-4 rounded-xl border-2 text-center transition-all ${
                                             selectedSize?.label === s.label
                                                 ? 'border-[#1a1a1a] bg-[#1a1a1a] text-white'

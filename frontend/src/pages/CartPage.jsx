@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
-    const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+    const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount, getItemCartKey } = useCart();
     const navigate = useNavigate();
 
     if (cartCount === 0) {
@@ -40,9 +40,11 @@ const CartPage = () => {
                 {/* Cart Items */}
                 <div className="flex-1">
                     <AnimatePresence>
-                        {cartItems.map((item, i) => (
+                        {cartItems.map((item, i) => {
+                            const itemKey = getItemCartKey(item);
+                            return (
                             <motion.div
-                                key={item._id || item.id}
+                                key={itemKey}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20, height: 0 }}
@@ -59,13 +61,18 @@ const CartPage = () => {
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-[#1a1a1a] text-[15px] truncate">{item.name}</h3>
+                                    {item.selectedSize && (
+                                        <span className="inline-block text-[11px] font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md mt-0.5">
+                                            {item.selectedSize}
+                                        </span>
+                                    )}
                                     <p className="text-[#d4912a] font-bold text-[15px] mt-1">₹{item.price.toFixed(2)}</p>
                                 </div>
 
                                 {/* Quantity */}
                                 <div className="flex items-center gap-0 border border-gray-200 rounded-xl overflow-hidden">
                                     <button
-                                        onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
+                                        onClick={() => updateQuantity(itemKey, item.quantity - 1)}
                                         className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors text-lg"
                                     >
                                         −
@@ -74,7 +81,7 @@ const CartPage = () => {
                                         {item.quantity}
                                     </span>
                                     <button
-                                        onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
+                                        onClick={() => updateQuantity(itemKey, item.quantity + 1)}
                                         className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors text-lg"
                                     >
                                         +
@@ -88,7 +95,7 @@ const CartPage = () => {
 
                                 {/* Remove */}
                                 <button
-                                    onClick={() => removeFromCart(item._id || item.id)}
+                                    onClick={() => removeFromCart(itemKey)}
                                     className="text-gray-300 hover:text-red-400 transition-colors"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -96,7 +103,8 @@ const CartPage = () => {
                                     </svg>
                                 </button>
                             </motion.div>
-                        ))}
+                            );
+                        })}
                     </AnimatePresence>
                 </div>
 

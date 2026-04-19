@@ -5,5 +5,4 @@ Disallow: /cart
 Disallow: /orders
 Disallow: /track/
 
-
 Sitemap: https://proteinbitess.com/sitemap.xml

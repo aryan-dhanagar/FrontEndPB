@@ -534,7 +534,13 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                             <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5">
                                                 {item.image && <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover" />}
                                                 <span className="text-xs font-medium text-gray-700">{item.name}</span>
+                                                {item.selectedSize && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                                                        {item.selectedSize}
+                                                    </span>
+                                                )}
                                                 <span className="text-xs text-gray-400">×{item.quantity}</span>
+                                                <span className="text-xs font-semibold text-[#d4912a]">₹{item.price?.toFixed(2)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -609,7 +615,16 @@ const AdminDashboard = ({ admin, onLogout }) => {
                                     )}
                                     <div className="flex flex-wrap gap-1.5 mb-3">
                                         {order.items?.map((item, i) => (
-                                            <span key={i} className="text-xs bg-gray-50 rounded-lg px-2 py-1 font-medium">{item.name} ×{item.quantity}</span>
+                                            <span key={i} className="flex items-center gap-1 text-xs bg-gray-50 rounded-lg px-2 py-1 font-medium">
+                                                {item.name}
+                                                {item.selectedSize && (
+                                                    <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                                                        {item.selectedSize}
+                                                    </span>
+                                                )}
+                                                <span className="text-gray-400">×{item.quantity}</span>
+                                                <span className="font-semibold text-[#d4912a]">₹{item.price?.toFixed(2)}</span>
+                                            </span>
                                         ))}
                                     </div>
                                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">

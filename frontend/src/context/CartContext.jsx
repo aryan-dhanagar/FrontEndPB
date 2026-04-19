@@ -11,6 +11,13 @@ export const useCart = () => {
 // Helper to get consistent product ID (works with both MongoDB _id and slug-based id)
 const getProductId = (product) => product._id || product.id;
 
+// Composite cart key: productId + selectedSize (so each size is a separate entry)
+const getCartKey = (product) => {
+    const pid = getProductId(product);
+    const size = product.selectedSize || '';
+    return size ? `${pid}|${size}` : pid;
+};
+
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(() => {
         const saved = localStorage.getItem('cart');
@@ -23,49 +30,54 @@ export const CartProvider = ({ children }) => {
     }, [cartItems]);
 
     const addToCart = (product, quantity = 1) => {
-        const pid = getProductId(product);
+        const cartKey = getCartKey(product);
         setCartItems(prev => {
-            const existing = prev.find(item => getProductId(item) === pid);
+            const existing = prev.find(item => getCartKey(item) === cartKey);
             if (existing) {
                 return prev.map(item =>
-                    getProductId(item) === pid
+                    getCartKey(item) === cartKey
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             }
-            return [...prev, { ...product, quantity }];
+            return [...prev, { ...product, quantity, cartKey }];
         });
         // Show "Added!" feedback
-        setJustAdded(pid);
+        setJustAdded(cartKey);
         setTimeout(() => setJustAdded(null), 1500);
     };
 
-    const removeFromCart = (productId) => {
-        setCartItems(prev => prev.filter(item => getProductId(item) !== productId));
+    // cartKey can be a composite "productId|size" key or a plain productId
+    const removeFromCart = (cartKey) => {
+        setCartItems(prev => prev.filter(item => getCartKey(item) !== cartKey));
     };
 
-    const updateQuantity = (productId, quantity) => {
+    const updateQuantity = (cartKey, quantity) => {
         if (quantity <= 0) {
-            removeFromCart(productId);
+            removeFromCart(cartKey);
             return;
         }
         setCartItems(prev =>
             prev.map(item =>
-                getProductId(item) === productId ? { ...item, quantity } : item
+                getCartKey(item) === cartKey ? { ...item, quantity } : item
             )
         );
     };
 
     const clearCart = () => setCartItems([]);
 
+    // isInCart / getQuantityInCart accept a plain productId (matches any size of that product)
     const isInCart = (productId) => cartItems.some(item => getProductId(item) === productId);
     const getQuantityInCart = (productId) => {
-        const item = cartItems.find(item => getProductId(item) === productId);
-        return item ? item.quantity : 0;
+        return cartItems
+            .filter(item => getProductId(item) === productId)
+            .reduce((sum, item) => sum + item.quantity, 0);
     };
 
     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    // Expose getCartKey so CartPage can use the composite key for removeFromCart/updateQuantity
+    const getItemCartKey = (item) => getCartKey(item);
 
     return (
         <CartContext.Provider
@@ -79,6 +91,7 @@ export const CartProvider = ({ children }) => {
                 cartTotal,
                 isInCart,
                 getQuantityInCart,
+                getItemCartKey,
                 justAdded,
             }}
         >
